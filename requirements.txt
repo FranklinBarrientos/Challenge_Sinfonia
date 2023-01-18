@@ -110,7 +110,7 @@ seaborn==0.12.2
 semver==2.13.0
 send2trash==1.8.0
 shap==0.41.0
-sip==4.19.13
+sip==5.0.0
 six==1.16.0
 slicer==0.0.7
 smmap==5.0.0
