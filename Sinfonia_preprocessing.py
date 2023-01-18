@@ -27,12 +27,12 @@ class Sinfonia():
         self.data['Fecha de ingreso del beneficiario a SPP'][self.data['Fecha de ingreso del beneficiario a SPP'] == 'Agosto 2017'] = '08/01/2017' 
 
         drop_list = ['Apellido Paterno', 'Apellido Materno', 'Nombres', 'Tipo de sangre','Edad','Celular del beneficiario', 'Nombre de Contacto de emergencia / Cuidador(a)', 
-                    'Recibio vacuna contra el COVID-19', 'Direccion de domicilio','Codigo del instrumento\n (de acuerdo al inventario)', 'Periodo/MES','Centro de estudios','Modulo', 
-                    'Numero de poliza', 'Otra discapacidad (Solo llenar cuando el campo anterior es "Otro")', 'Otro trastorno (Solo llenar cuando el campo anterior es "Otro")',
-                    'Toma algun medicamento? Especificar', 'Cuantas dosis tiene?', 'Tiene alguna enfermedad previa?', 'Otra enfermedad previa', 
-                    'Numero de Contacto de contacto de emergencia / Cuidador (a)', 'Parentesco con el beneficiario', 'Tipo de Documento de Identidad', 'Especialidad / Registro de voz',
-                    'Motivo del retiro', 'Numero de Documento de identidad', 'Cantidad de reingresos',
-                    'Fecha de inactividad', 'Fecha de ingreso']
+                     'Recibio vacuna contra el COVID-19', 'Direccion de domicilio','Codigo del instrumento\n (de acuerdo al inventario)', 'Periodo/MES','Centro de estudios','Modulo', 
+                     'Numero de poliza', 'Otra discapacidad (Solo llenar cuando el campo anterior es "Otro")', 'Otro trastorno (Solo llenar cuando el campo anterior es "Otro")',
+                     'Toma algun medicamento? Especificar', 'Cuantas dosis tiene?', 'Tiene alguna enfermedad previa?', 'Otra enfermedad previa', 
+                     'Numero de Contacto de contacto de emergencia / Cuidador (a)', 'Parentesco con el beneficiario', 'Tipo de Documento de Identidad', 'Especialidad / Registro de voz',
+                     'Motivo del retiro', 'Numero de Documento de identidad', 'Cantidad de reingresos',
+                     'Fecha de inactividad', 'Fecha de ingreso']
 
         data_drop = self.data.drop(columns = drop_list)
 
@@ -102,25 +102,25 @@ class Sinfonia():
                                             Distancia_domicilio_colegio     = data_feature[['Distrito de domicilio', 'Distrito del centro de estudios']].apply(lambda x: self.dist[x[0]][x[1]] if all([i in self.dist.columns for i in x]) else np.nan, axis = 1),
                                             Proximidad_domicilio_colegio    = data_feature[['Distrito de domicilio', 'Distrito del centro de estudios']].apply(lambda x: self.neig[x[0]][x[1]] if all([i in self.neig.columns for i in x]) else np.nan, axis = 1),
                                             Transicion_nucleo_nucleoinicial = np.where(data_feature['Nucleo'] !=  data_feature['Nucleo al que ingreso por primera vez'], 1, 0),
-                                            Nivel_academico  =  data_feature['Nivel academico actual'].apply(lambda x: np.where(x == 'INICIAL', 0, 
-                                                                                                                       np.where(x == 'PRIMARIA', 1,
-                                                                                                                       np.where(x == 'SECUNDARIA', 2, 
-                                                                                                                       np.where(x == 'PREUNIVERSITARIO', 3,
-                                                                                                                       np.where(x == 'UNIVERSITARIO', 4, np.nan)))))),
-                                            Grado_estudios =  data_feature['Grado de estudio actual'].apply(lambda x: np.where(x == 'INICIAL', 0, 
-                                                                                                                      np.where(x == '1ERO PRIMARIA', 1,
-                                                                                                                      np.where(x == '2DO PRIMARIA', 2, 
-                                                                                                                      np.where(x == '3ERO PRIMARIA', 3,
-                                                                                                                      np.where(x == '4TO PRIMARIA', 4, 
-                                                                                                                      np.where(x == '5TO PRIMARIA', 5,
-                                                                                                                      np.where(x == '6TO PRIMARIA', 6, 
-                                                                                                                      np.where(x == '1ERO SECUNDARIA', 7, 
-                                                                                                                      np.where(x == '2DO SECUNDARIA', 8, 
-                                                                                                                      np.where(x == '3ERO SECUNDARIA', 9, 
-                                                                                                                      np.where(x == '4TO SECUNDARIA', 10, 
-                                                                                                                      np.where(x == '5TO SECUNDARIA', 11,
-                                                                                                                      np.where(x == 'PREUNIVERSITARIO', 12,
-                                                                                                                      np.where(x == 'SUPERIOR UNIVERSITARIA', 13, np.nan)))))))))))))))).copy()
+                                            Nivel_academico  =  data_feature['Nivel academico actual'].apply(lambda x:  np.where(x == 'INICIAL', 1, 
+                                                                                                                        np.where(x == 'PRIMARIA', 2,
+                                                                                                                        np.where(x == 'SECUNDARIA', 3, 
+                                                                                                                        np.where(x == 'PREUNIVERSITARIO', 4,
+                                                                                                                        np.where(x == 'UNIVERSITARIO', 5, 0)))))),
+                                            Grado_estudios =  data_feature['Grado de estudio actual'].apply(lambda x: np.where(x == 'INICIAL', 1, 
+                                                                                                                        np.where(x == '1ERO PRIMARIA', 2.1,
+                                                                                                                        np.where(x == '2DO PRIMARIA', 2.2, 
+                                                                                                                        np.where(x == '3ERO PRIMARIA', 2.3,
+                                                                                                                        np.where(x == '4TO PRIMARIA', 2.4, 
+                                                                                                                        np.where(x == '5TO PRIMARIA', 2.6,
+                                                                                                                        np.where(x == '6TO PRIMARIA', 2.8, 
+                                                                                                                        np.where(x == '1ERO SECUNDARIA', 3, 
+                                                                                                                        np.where(x == '2DO SECUNDARIA', 3.2, 
+                                                                                                                        np.where(x == '3ERO SECUNDARIA', 3.4, 
+                                                                                                                        np.where(x == '4TO SECUNDARIA', 3.6, 
+                                                                                                                        np.where(x == '5TO SECUNDARIA', 3.8,
+                                                                                                                        np.where(x == 'PREUNIVERSITARIO', 4,
+                                                                                                                        np.where(x == 'SUPERIOR UNIVERSITARIA', 5, 0)))))))))))))))).copy()
 
         data_feature['Año Ingreso'] = data_feature['Fecha de ingreso del beneficiario a SPP'].dt.year
         data_feature['Mes Ingreso'] = data_feature['Fecha de ingreso del beneficiario a SPP'].dt.month_name()

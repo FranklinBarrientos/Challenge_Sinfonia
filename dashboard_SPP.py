@@ -180,7 +180,8 @@ filename = "decision_tree.pickle"
 # load model
 km = pickle.load(open(filename, "rb"))
 
-data_cl = data_encoding.assign( eje_estudiante1 = np.where(data_encoding['Cantidad de hermanos'] == 0, 4,
+data_encoding = data_encoding.dropna().copy()
+data_cl = data_encoding.assign(eje_estudiante1  = np.where(data_encoding['Cantidad de hermanos'] == 0, 4,
                                                   np.where(data_encoding['Cantidad de hermanos'] <= 2, 2.5,
                                                   np.where(data_encoding['Cantidad de hermanos'] <= 3, 1.5,
                                                   np.where(data_encoding['Cantidad de hermanos'] <= 4, 1,
@@ -198,19 +199,19 @@ data_cl = data_encoding.assign( eje_estudiante1 = np.where(data_encoding['Cantid
                                 eje_estudiante5 = np.where(data_encoding['Hobbies'] == 'ARTE', 2,
                                                   np.where(data_encoding['Hobbies'] == 'CONOCIMIENTO', 1.5,
                                                   np.where(data_encoding['Hobbies'] == 'DEPORTE', 1, 0.5))),
+                                eje_estudiante6 = np.where(data_encoding['Estudia actualmente'] == 'SI', 2, 1),
                                 eje_programa1   = np.where(data_encoding['Dias_en_SPP'] <= 500, 3,
                                                   np.where(data_encoding['Dias_en_SPP'] <= 1000, 1.5,
                                                   np.where(data_encoding['Dias_en_SPP'] <= 2000, 1, 0.5))),
                                 eje_programa2   = np.where(data_encoding['Programa musical'] == 'CORO', 3,
                                                   np.where(data_encoding['Programa musical'] == 'ORQUESTA', 1.5,
                                                   np.where(data_encoding['Programa musical'] == 'KINDER', 1, 0.5))),
-                                eje_programa3   = np.where(data_encoding['Estado del beneficiarios'] == 'ACTIVO', 2,
-                                                  np.where(data_encoding['Estado del beneficiarios'] == 'INACTIVO', 1, 0)),
-                                eje_programa4   = np.where(data_encoding['Grupo'] == 'FORMACIÓN INFANTIL', 3,
-                                                  np.where(data_encoding['Grupo'] == 'FORMACIÓN JUVENIL', 1,
+                                eje_programa3   = np.where(data_encoding['Grupo'] == 'FORMACION INFANTIL', 3,
+                                                  np.where(data_encoding['Grupo'] == 'FORMACION JUVENIL', 1,
                                                   np.where(data_encoding['Grupo'] == 'KINDER', 1.1, 0.5))),
-                                eje_programa5   = np.where(data_encoding['Transcion_domicilio_colegio'] == 1, 0.5, 1.5),
-                                eje_programa6   = np.where(data_encoding['Proximidad_domicilio_colegio'] == 1, 1.5, 0.5)
+                                eje_programa4   = np.where(data_encoding['Transcion_domicilio_colegio'] == 1, 0.5, 1.5),
+                                eje_programa5   = np.where(data_encoding['Proximidad_domicilio_colegio'] == 1, 1.5, 0.5),
+                                eje_programa6   = np.where(data_encoding['Tiene beca de estudios?'] == 'NO', 1, 2),
                                 ).filter(regex = 'eje*').copy()
 
 data_cl  = data_cl.assign(eje_estudiante = data_cl.filter(regex = 'eje_estudiante*').sum(axis=1),
@@ -225,11 +226,11 @@ data_encoding['cluster'] = y_km
 
 data_encoding = data_encoding.assign(cluster =   np.where(data_encoding['cluster'] == 0, 'cluster1',
                                                  np.where(data_encoding['cluster'] == 1, 'cluster1', 
+                                                 np.where(data_encoding['cluster'] == 6, 'cluster1',
+                                                 np.where(data_encoding['cluster'] == 2, 'cluster2',
                                                  np.where(data_encoding['cluster'] == 5, 'cluster2',
-                                                 np.where(data_encoding['cluster'] == 6, 'cluster2',
-                                                 np.where(data_encoding['cluster'] == 2, 'cluster3',
-                                                 np.where(data_encoding['cluster'] == 4, 'cluster3',
-                                                 np.where(data_encoding['cluster'] == 3, 'cluster4', 'None'))))))))
+                                                 np.where(data_encoding['cluster'] == 3, 'cluster3',
+                                                 np.where(data_encoding['cluster'] == 4, 'cluster4', 'None'))))))))
 
 dummy_columns = ['Estado del beneficiarios', 'Programa musical', 'Grupo', 'Sexo',
                  'Tipo de centro de estudios', 'Hobbies']
@@ -249,11 +250,11 @@ dbase_norm = data_encoding[columnas].apply(lambda x: x/max(x))
 dbase_norm['cluster'] = y_km
 dbase_norm = dbase_norm.assign(cluster = np.where(dbase_norm['cluster'] == 0, 'cluster1',
                                          np.where(dbase_norm['cluster'] == 1, 'cluster1', 
+                                         np.where(dbase_norm['cluster'] == 6, 'cluster1',
+                                         np.where(dbase_norm['cluster'] == 2, 'cluster2',
                                          np.where(dbase_norm['cluster'] == 5, 'cluster2',
-                                         np.where(dbase_norm['cluster'] == 6, 'cluster2',
-                                         np.where(dbase_norm['cluster'] == 2, 'cluster3',
-                                         np.where(dbase_norm['cluster'] == 4, 'cluster3',
-                                         np.where(dbase_norm['cluster'] == 3, 'cluster4', 'None'))))))))
+                                         np.where(dbase_norm['cluster'] == 3, 'cluster3',
+                                         np.where(dbase_norm['cluster'] == 4, 'cluster4', 'None'))))))))
 
 
 def complete_age(age, amount):
