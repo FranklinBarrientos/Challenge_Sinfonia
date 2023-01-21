@@ -3,7 +3,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
-import warnings
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -13,12 +12,6 @@ import pickle
 
 from Sinfonia_preprocessing import Sinfonia
 from Sinfonia_ML import ML_LogisticRegression
-
-import chart_studio
-chart_studio.tools.set_credentials_file(username='frank2207', api_key='yX63Ymt5tI1JGzzqSc9Y')
-
-warnings.filterwarnings('ignore')
-st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 data = pd.read_csv("DATA/DATA.csv")
@@ -279,16 +272,7 @@ st.set_page_config(page_title            = 'Sinfonia Por El Peru',
 
 
 ## ---------------------------------------------------------------------------------------------------
-    
-#st.sidebar.header('Dashboard `version 2`')
-#st.sidebar.success("Select a page above.")
-#st.sidebar.subheader('Selección de Vista')
-#time_hist_color = st.sidebar.selectbox('Categoria', ('Dashboard', 'Clusters', 'Fugas')) 
 
-#st.sidebar.markdown('''
-#---
-#Created with ❤️ by [Data Professor](https://youtube.com/dataprofessor/).
-#''')
 
 with st.sidebar:
     selected = option_menu(
@@ -334,7 +318,6 @@ if selected == 'Main Page':
         st.subheader("Cantidad de Ingresos/Salidas durante todos los meses")
         st.plotly_chart(fig3, theme="streamlit", use_container_width=True)
 
-    #add_vertical_space()
     row2_1, row2_2, row2_3 = st.columns(3)
 
     with row2_1:
@@ -478,10 +461,7 @@ if selected == 'ML Analisis':
     st.subheader("Variables que más afectan al retiro de beneficiarios")
     st.pyplot(fig5) 
 
-    #data_final['cluster'] =  y_km
-    #data_final['Probabilidad de Fuga'] =  y_predict
-
-    st.dataframe(X_test)
+    st.dataframe(X_test.sort_values(by=['Prediction Probability of 1'], ascending=False).drop(['Prediction Probability of 0', 'Estado del beneficiarios', 'Estado del beneficiarios predict'], axis='columns'))
 
 ## ---------------------------------------------------------------------------------------------------
 
