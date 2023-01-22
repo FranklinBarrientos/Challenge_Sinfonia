@@ -13,6 +13,9 @@ import pickle
 from Sinfonia_preprocessing import Sinfonia
 from Sinfonia_ML import ML_LogisticRegression
 
+import warnings
+warnings.filterwarnings('ignore')
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 data = pd.read_csv("DATA/DATA.csv")
 
