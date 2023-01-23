@@ -231,12 +231,12 @@ data_encoding = pd.get_dummies(data_encoding, prefix_sep='.', columns=dummy_colu
 
 data_encoding.rename(
     columns={"Sexo.M": "Masculino", "Sexo.F": "Femenino", "Hobbies.ARTE": "Arte", "Hobbies.CONOCIMIENTO": "Conocimiento", "Hobbies.DEPORTE": "Deporte",
-             "Hobbies.OTROS": "Otros", "Tipo de centro de estudios.PUBLICO": "Publico", "Tipo de centro de estudios.PRIVADO": "Privado"},
+             "Hobbies.OTROS": "Otros", "Tipo de centro de estudios.PUBLICO": "Colegio_publico", "Tipo de centro de estudios.PRIVADO": "Privado"},
     inplace=True,
 )
 
 columnas = ['Masculino', 'Cantidad de hermanos', 'Transcion_domicilio_colegio', 
-            'Arte', 'Conocimiento', 'Deporte', 'Publico', 'Transicion_nucleo_nucleoinicial']
+            'Arte', 'Conocimiento', 'Deporte', 'Colegio_publico']
 
 dbase_norm = data_encoding[columnas].apply(lambda x: x/max(x))
 dbase_norm['cluster'] = y_km
