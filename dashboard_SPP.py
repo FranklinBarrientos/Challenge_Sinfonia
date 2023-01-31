@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -16,6 +17,8 @@ from Sinfonia_ML import ML_LogisticRegression
 import warnings
 warnings.filterwarnings('ignore')
 st.set_option('deprecation.showPyplotGlobalUse', False)
+
+# from IPython.display import HTML
 
 data = pd.read_csv("DATA/DATA.csv")
 
@@ -162,6 +165,9 @@ fig5 = shap.summary_plot(shap_values_log, plot_type='bar', max_display = 5)
 plt.xlabel('Magnitud')
 #plt.show()
 
+# -- Figura 5: Top 5 de variables que más afectan al retiro de beneficiarios
+fig6 = px.pie(data_encoding['Tipo de centro de estudios'].value_counts().to_frame(name = 'total').reset_index(), values='total', names='index')
+
 ####################################################################################################################
 ################################  Seccion de ML: Perfilamiento de Estudiantes    ###################################
 ####################################################################################################################
@@ -208,21 +214,20 @@ data_cl = data_encoding.assign(eje_estudiante1  = np.where(data_encoding['Cantid
 
 data_cl  = data_cl.assign(eje_estudiante = data_cl.filter(regex = 'eje_estudiante*').sum(axis=1),
                           eje_programa   = data_cl.filter(regex = 'eje_programa*').sum(axis=1))\
-                  .filter(['eje_estudiante', 'eje_programa'])\
-                  .copy()
+                  .filter(['eje_estudiante', 'eje_programa'])
 
 # Predict cluster
 y_km = km.predict(data_cl)
 
 data_encoding['cluster'] = y_km 
 
-data_encoding = data_encoding.assign(cluster =   np.where(data_encoding['cluster'] == 0, 'cluster1',
-                                                 np.where(data_encoding['cluster'] == 1, 'cluster1', 
-                                                 np.where(data_encoding['cluster'] == 6, 'cluster1',
-                                                 np.where(data_encoding['cluster'] == 2, 'cluster2',
-                                                 np.where(data_encoding['cluster'] == 5, 'cluster2',
-                                                 np.where(data_encoding['cluster'] == 3, 'cluster3',
-                                                 np.where(data_encoding['cluster'] == 4, 'cluster4', 'None'))))))))
+data_encoding = data_encoding.assign(cluster =   np.where(data_encoding['cluster'] == 0, 'Perfil 1',
+                                                 np.where(data_encoding['cluster'] == 1, 'Perfil 1', 
+                                                 np.where(data_encoding['cluster'] == 6, 'Perfil 1',
+                                                 np.where(data_encoding['cluster'] == 2, 'Perfil 2',
+                                                 np.where(data_encoding['cluster'] == 5, 'Perfil 2',
+                                                 np.where(data_encoding['cluster'] == 3, 'Perfil 3',
+                                                 np.where(data_encoding['cluster'] == 4, 'Perfil 4', 'None'))))))))
 
 dummy_columns = ['Estado del beneficiarios', 'Programa musical', 'Grupo', 'Sexo',
                  'Tipo de centro de estudios', 'Hobbies']
@@ -240,13 +245,13 @@ columnas = ['Masculino', 'Cantidad de hermanos', 'Transcion_domicilio_colegio',
 
 dbase_norm = data_encoding[columnas].apply(lambda x: x/max(x))
 dbase_norm['cluster'] = y_km
-dbase_norm = dbase_norm.assign(cluster = np.where(dbase_norm['cluster'] == 0, 'cluster1',
-                                         np.where(dbase_norm['cluster'] == 1, 'cluster1', 
-                                         np.where(dbase_norm['cluster'] == 6, 'cluster1',
-                                         np.where(dbase_norm['cluster'] == 2, 'cluster2',
-                                         np.where(dbase_norm['cluster'] == 5, 'cluster2',
-                                         np.where(dbase_norm['cluster'] == 3, 'cluster3',
-                                         np.where(dbase_norm['cluster'] == 4, 'cluster4', 'None'))))))))
+dbase_norm = dbase_norm.assign(cluster = np.where(dbase_norm['cluster'] == 0, 'Perfil 1',
+                                         np.where(dbase_norm['cluster'] == 1, 'Perfil 1', 
+                                         np.where(dbase_norm['cluster'] == 6, 'Perfil 1',
+                                         np.where(dbase_norm['cluster'] == 2, 'Perfil 2',
+                                         np.where(dbase_norm['cluster'] == 5, 'Perfil 2',
+                                         np.where(dbase_norm['cluster'] == 3, 'Perfil 3',
+                                         np.where(dbase_norm['cluster'] == 4, 'Perfil 4', 'None'))))))))
 
 
 def complete_age(age, amount):
@@ -259,6 +264,10 @@ def complete_age(age, amount):
             new_amount.append(0)    
 
     return np.array(new_amount)
+
+def color_survived(val):
+    color = 'green' if val >= 0.9 else 'red'
+    return f'background-color: {color}'
 
 ####################################################################################################################
 ################################  Seccion de Dashboard: Desarrollo de Interfaz   ###################################
@@ -333,17 +342,21 @@ if selected == 'Main Page':
 
 
     with row2_3:
-        st.subheader("Top 5 de variables que más afectan al retiro de beneficiarios")
-        st.pyplot(fig5)        
+        st.subheader("Distribucion de estudiantes por centros de estudios")
+        st.plotly_chart(fig6, theme="streamlit", use_container_width=True)        
 
 
     #st.title(f"You have selected {selected}")
 if selected == 'Cluster':
     st.title(f"You have selected {selected}")
 
-    cluster = ['All', 'cluster1', 'cluster2', 'cluster3', 'cluster4']
+    cluster = ['Todos', 'Perfil 1', 'Perfil 2', 'Perfil 3', 'Perfil 4']
     cl = st.selectbox('Seleccione el cluster', cluster, help = 'Filter report to show only one hospital')
-
+    definition = {'Todos': 'Los estudiantes principalmente lo conforman mujeres donde en su mayoria pertenecen a escuelas privadas ubicadas en distritos distintos al de sus viviendas', 
+                  'Perfil 1': 'Estudiantes pertenecientes a escuelas privadas con pocos hermanos orientados a actividades artisticas y relacionadas al conocimiento', 
+                  'Perfil 2': 'Estudiantes que no poseen un hobbie en particular asu vez cuyo centro de estudios en el mayor de los casos son escuelas públicas pertenecientes a un distrito diferente del cual proceden y en cuyas familias presentan por lo menos un hermano', 
+                  'Perfil 3': 'Estudiantes principalmente compuesto por mujeres pertenecientes a escuelas privadas con elevado interes en actividades orientados al Arte y el conocimiento, donde en cuyas familias en el mayoria de los casos son hijos únicos', 
+                  'Perfil 4': 'Estudiantes pertencientes a escuelas privadas orientadas principalmente a actividades relacionados al conocimiento y los deportes donde y quien dentro de su nucleo familiar son hijos unicos'}
     ## Data
 
     with st.spinner('Actualizando...'):
@@ -352,7 +365,7 @@ if selected == 'Cluster':
         kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns((1,1,1,1,1))
 
         # fill in those three columns with respective metrics or KPIs 
-        if pd.isnull(cl) or cl == 'All':
+        if pd.isnull(cl) or cl == 'Todos':
             db_norm = dbase_norm
             db      = data_encoding
         else:
@@ -360,8 +373,8 @@ if selected == 'Cluster':
             db      = data_encoding.query('cluster == "{}"'.format(cl))
 
         kpi2.metric(label="Tamaño del Cluster", value = len(db_norm.index), delta= -8)
-        kpi3.metric(label="Edad Promedio",      value = int(db['Edad'].mean()), delta= 5)
-        kpi4.metric(label="Grado Academico",    value = db['Grado_estudios'].median(), delta= -2)
+        kpi3.metric(label="Edad Promedio",      value = round(int(db['Edad'].mean()), 2), delta= 5)
+        kpi4.metric(label="Grado Academico",    value = round(db['Grado_estudios'].median(), 2), delta= -2)
 
         c1, c2 = st.columns(2)
 
@@ -389,7 +402,7 @@ if selected == 'Cluster':
 
         with c2:
             st.title(cl)
-            st.markdown('Esta es una pequeña descripcion del cluster que no se que colocar')
+            st.markdown(definition[cl])
 
         gr1, gr2, gr3 = st.columns(3)
 
@@ -459,12 +472,19 @@ if selected == 'Cluster':
 
 
 if selected == 'ML Analisis':
+
     st.title(f"You have selected {selected}")
 
     st.subheader("Variables que más afectan al retiro de beneficiarios")
     st.pyplot(fig5) 
 
-    st.dataframe(X_test.sort_values(by=['Prediction Probability of 1'], ascending=False).drop(['Prediction Probability of 0', 'Estado del beneficiarios', 'Estado del beneficiarios predict'], axis='columns'))
+    data = X_test.sort_values(by=['Prediction Probability of 1'], ascending=False)\
+                 .drop(['Prediction Probability of 0', 'Estado del beneficiarios', 'Estado del beneficiarios predict'], axis='columns')
+
+    cm = sns.light_palette("xkcd:copper", as_cmap=True)
+
+    st.dataframe(data.style.background_gradient(cmap=cm, subset = ['Prediction Probability of 1'])
+                     .format({'Prediction Probability of 1': "{:.2%}"}))
 
 ## ---------------------------------------------------------------------------------------------------
 

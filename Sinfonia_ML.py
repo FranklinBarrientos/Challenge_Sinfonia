@@ -16,7 +16,6 @@ class ML_LogisticRegression:
 
         data_activo = self.data_final[self.data_final['Estado del beneficiarios'] == 1]
         data_inactivo = self.data_final[self.data_final['Estado del beneficiarios'] == 0]
-
         X = data_activo.iloc[:,1:]
         y = data_activo['Estado del beneficiarios'].values
 

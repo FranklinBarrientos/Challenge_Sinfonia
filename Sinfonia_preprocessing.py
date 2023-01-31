@@ -32,7 +32,7 @@ class Sinfonia():
                      'Toma algun medicamento? Especificar', 'Cuantas dosis tiene?', 'Tiene alguna enfermedad previa?', 'Otra enfermedad previa', 
                      'Numero de Contacto de contacto de emergencia / Cuidador (a)', 'Parentesco con el beneficiario', 'Tipo de Documento de Identidad', 'Especialidad / Registro de voz',
                      'Motivo del retiro', 'Numero de Documento de identidad', 'Cantidad de reingresos',
-                     'Fecha de inactividad', 'Fecha de ingreso']
+                     'Fecha de inactividad', 'Fecha de ingreso'] # Habilitando datos personales de los estudiantes (Apellido Paterno, Apellido Materno, Nombres, Numero de Documento de identidad)
 
         data_drop = self.data.drop(columns = drop_list)
 
