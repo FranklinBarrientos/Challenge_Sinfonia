@@ -351,7 +351,7 @@ if selected == 'Cluster':
     st.title(f"You have selected {selected}")
 
     cluster = ['Todos', 'Perfil 1', 'Perfil 2', 'Perfil 3', 'Perfil 4']
-    cl = st.selectbox('Seleccione el cluster', cluster, help = 'Filter report to show only one hospital')
+    cl = st.selectbox('Seleccione el cluster', cluster, help = 'Filtrar el reporte para mostrar unicamente un perfil') 
     definition = {'Todos': 'Los estudiantes principalmente lo conforman mujeres donde en su mayoria pertenecen a escuelas privadas ubicadas en distritos distintos al de sus viviendas', 
                   'Perfil 1': 'Estudiantes pertenecientes a escuelas privadas con pocos hermanos orientados a actividades artisticas y relacionadas al conocimiento', 
                   'Perfil 2': 'Estudiantes que no poseen un hobbie en particular asu vez cuyo centro de estudios en el mayor de los casos son escuelas públicas pertenecientes a un distrito diferente del cual proceden y en cuyas familias presentan por lo menos un hermano', 
