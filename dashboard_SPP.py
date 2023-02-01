@@ -18,8 +18,6 @@ import warnings
 warnings.filterwarnings('ignore')
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-# from IPython.display import HTML
-
 data = pd.read_csv("DATA/DATA.csv")
 
 preprocess = Sinfonia(df = data)
@@ -481,10 +479,19 @@ if selected == 'ML Analisis':
     data = X_test.sort_values(by=['Prediction Probability of 1'], ascending=False)\
                  .drop(['Prediction Probability of 0', 'Estado del beneficiarios', 'Estado del beneficiarios predict'], axis='columns')
 
+    dataFinal = data.merge(data_encoding.filter(['Numero de Documento de identidad', 'cluster']), on='Numero de Documento de identidad', how='left')
+
+    columnasDescriptivas = ['Apellido Paterno', 'Apellido Materno', 'Nombres', 'Numero de Documento de identidad',
+                            'Programa musical', 'Grupo', 'Nacionalidad', 'Sexo', 'Cantidad de hermanos', 'Edad', 'Dias_en_SPP',
+                            'Nivel_academico', 'Grado_estudios', 'Score Education', 'Score Economic', 'Score Health', 
+                            'Score Musical Interest', 'Score Total',
+                            'cluster', 'Prediction Probability of 1']
+
     cm = sns.light_palette("xkcd:copper", as_cmap=True)
 
-    st.dataframe(data.style.background_gradient(cmap=cm, subset = ['Prediction Probability of 1'])
-                     .format({'Prediction Probability of 1': "{:.2%}"}))
+    st.dataframe(dataFinal.filter(columnasDescriptivas)
+                          .style.background_gradient(cmap=cm, subset = ['Prediction Probability of 1'])
+                          .format({'Prediction Probability of 1': "{:.2%}"}))
 
 ## ---------------------------------------------------------------------------------------------------
 

@@ -25,13 +25,14 @@ class Sinfonia():
 
         self.data['Fecha de ingreso del beneficiario a SPP'][self.data['Fecha de ingreso del beneficiario a SPP'] == '30-ago']      = '01/01/1900'
         self.data['Fecha de ingreso del beneficiario a SPP'][self.data['Fecha de ingreso del beneficiario a SPP'] == 'Agosto 2017'] = '08/01/2017' 
+        self.data['Numero de Documento de identidad'] = self.data['Numero de Documento de identidad'].astype(int).astype(str)
 
-        drop_list = ['Apellido Paterno', 'Apellido Materno', 'Nombres', 'Tipo de sangre','Edad','Celular del beneficiario', 'Nombre de Contacto de emergencia / Cuidador(a)', 
+        drop_list = ['Tipo de sangre','Edad','Celular del beneficiario', 'Nombre de Contacto de emergencia / Cuidador(a)', 
                      'Recibio vacuna contra el COVID-19', 'Direccion de domicilio','Codigo del instrumento\n (de acuerdo al inventario)', 'Periodo/MES','Centro de estudios','Modulo', 
                      'Numero de poliza', 'Otra discapacidad (Solo llenar cuando el campo anterior es "Otro")', 'Otro trastorno (Solo llenar cuando el campo anterior es "Otro")',
                      'Toma algun medicamento? Especificar', 'Cuantas dosis tiene?', 'Tiene alguna enfermedad previa?', 'Otra enfermedad previa', 
                      'Numero de Contacto de contacto de emergencia / Cuidador (a)', 'Parentesco con el beneficiario', 'Tipo de Documento de Identidad', 'Especialidad / Registro de voz',
-                     'Motivo del retiro', 'Numero de Documento de identidad', 'Cantidad de reingresos',
+                     'Motivo del retiro', 'Cantidad de reingresos',
                      'Fecha de inactividad', 'Fecha de ingreso'] # Habilitando datos personales de los estudiantes (Apellido Paterno, Apellido Materno, Nombres, Numero de Documento de identidad)
 
         data_drop = self.data.drop(columns = drop_list)
