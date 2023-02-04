@@ -2,14 +2,15 @@ import re
 import pandas as pd
 import numpy as np
 import unicodedata
-import Functions
+import pickle
+from Scripts.Functions import *
 
 class Sinfonia():
 
-    def __init__(self,df):
+    def __init__(self,df, distancia_data, neighboor_data):
         self.data = df
-        self.dist = pd.read_excel("DATA/distance_tables.xlsx", sheet_name = 'distance', index_col='Unnamed: 0')
-        self.neig = pd.read_excel("DATA/distance_tables.xlsx", sheet_name = 'neighboor', index_col='Unnamed: 0')
+        self.dist = distancia_data
+        self.neig = neighboor_data
 
     def Cleaning(self):
 
@@ -33,13 +34,13 @@ class Sinfonia():
                      'Toma algun medicamento? Especificar', 'Cuantas dosis tiene?', 'Tiene alguna enfermedad previa?', 'Otra enfermedad previa', 
                      'Numero de Contacto de contacto de emergencia / Cuidador (a)', 'Parentesco con el beneficiario', 'Tipo de Documento de Identidad', 'Especialidad / Registro de voz',
                      'Motivo del retiro', 'Cantidad de reingresos',
-                     'Fecha de inactividad', 'Fecha de ingreso'] # Habilitando datos personales de los estudiantes (Apellido Paterno, Apellido Materno, Nombres, Numero de Documento de identidad)
+                     'Fecha de inactividad', 'Fecha de ingreso']
 
         data_drop = self.data.drop(columns = drop_list)
+        
 
-#        Latitude_Longitud_v = np.vectorize(Functions.Latitude_Longitud)
-        Location_v = np.vectorize(Functions.Location)
-        Normalize_data_v = np.vectorize(Functions.Normalize_data)
+        Location_v = np.vectorize(Location)
+        Normalize_data_v = np.vectorize(Normalize_data)
 
         ## Imputation
 
@@ -54,13 +55,6 @@ class Sinfonia():
 
         mask_location = Location_v(data_drop['Region de domicilio'],data_drop['Provincia de domicilio'])
 
-#        (longitude, latitude) = Latitude_Longitud_v(data_drop['Region de domicilio'],
-#                                                    data_drop['Provincia de domicilio'],
-#                                                    data_drop['Distrito de domicilio'])
-#        data_drop['Longitud'] = longitude
-#        data_drop['Latitud'] = latitude
-
-#        mask_location = data_drop['Latitud'] < -11
         mask_fechas = (data_drop['Fecha de Nacimiento'] != 'NO APLICA') & (data_drop['Fecha de ingreso del beneficiario a SPP'] != 'NO APLICA')
         mask_total  = mask_fechas & mask_location
 
@@ -83,8 +77,8 @@ class Sinfonia():
                                                                                               .drop(['Actividad extracurricular'], axis=1)
 
 
-        Nacionalidad_v = np.vectorize(Functions.Nacionalidad)
-        Validate_date_v = np.vectorize(Functions.Validate_date)
+        Nacionalidad_v = np.vectorize(Nacionalidad)
+        Validate_date_v = np.vectorize(Validate_date)
         
         data_feature['Nacionalidad'] = Nacionalidad_v(data_feature['Nacionalidad'])
         data_feature['Fecha de Nacimiento'] = Validate_date_v(data_feature['Fecha de Nacimiento'])
@@ -96,9 +90,6 @@ class Sinfonia():
         data_feature =  data_feature.assign(Edad             = np.where(pd.isna(data_feature['Fecha de Nacimiento']), np.nan, ((pd.to_datetime("today") - data_feature['Fecha de Nacimiento']).dt.days/365.25).round().astype('int', errors='ignore')),
                                             Dias_en_SPP      = np.where(data_feature['Fecha de retiro del beneficiario'].isnull, (pd.to_datetime("today") - data_feature['Fecha de ingreso del beneficiario a SPP']).dt.days, 
                                                                                                                                  (data_feature['Fecha de retiro del beneficiario'] - data_feature['Fecha de ingreso del beneficiario a SPP']).dt.days),
-                                            #Transcion_elenco = np.where(data_feature['Fecha de ingreso al beneficiario al Elenco Central'].isna(), 0, 1),
-                                            #Elenco_prev_dias = (data_feature['Fecha de ingreso al beneficiario al Elenco Central'] - data_feature['Fecha de ingreso del beneficiario a SPP']).dt.days,
-                                            #Elenco_after_dias= (data_feature['Fecha de retiro del beneficiario'] - data_feature['Fecha de ingreso al beneficiario al Elenco Central']).dt.days,
                                             Transcion_domicilio_colegio     = np.where(data_feature['Distrito de domicilio'] != data_feature['Distrito del centro de estudios'], 1, 0),
                                             Distancia_domicilio_colegio     = data_feature[['Distrito de domicilio', 'Distrito del centro de estudios']].apply(lambda x: self.dist[x[0]][x[1]] if all([i in self.dist.columns for i in x]) else np.nan, axis = 1),
                                             Proximidad_domicilio_colegio    = data_feature[['Distrito de domicilio', 'Distrito del centro de estudios']].apply(lambda x: self.neig[x[0]][x[1]] if all([i in self.neig.columns for i in x]) else np.nan, axis = 1),
@@ -108,7 +99,7 @@ class Sinfonia():
                                                                                                                         np.where(x == 'SECUNDARIA', 3, 
                                                                                                                         np.where(x == 'PREUNIVERSITARIO', 4,
                                                                                                                         np.where(x == 'UNIVERSITARIO', 5, 0)))))),
-                                            Grado_estudios =  data_feature['Grado de estudio actual'].apply(lambda x: np.where(x == 'INICIAL', 1, 
+                                            Grado_estudios =  data_feature['Grado de estudio actual'].apply(lambda x:   np.where(x == 'INICIAL', 1, 
                                                                                                                         np.where(x == '1ERO PRIMARIA', 2.1,
                                                                                                                         np.where(x == '2DO PRIMARIA', 2.2, 
                                                                                                                         np.where(x == '3ERO PRIMARIA', 2.3,
@@ -130,14 +121,11 @@ class Sinfonia():
         data_feature['Mes Retiro'] = data_feature['Fecha de retiro del beneficiario'].dt.month_name()
         data_feature['Mes Retiro Num'] = data_feature['Fecha de retiro del beneficiario'].dt.month
 
-
-#        data_feature['Cluster Location'] = Functions.Cluster_Location(data_feature)
-        
-        Education_Score_v        = np.vectorize(Functions.Education_Score)
-        Economic_Score_v         = np.vectorize(Functions.Economic_Score)
-        Health_Score_v           = np.vectorize(Functions.Health_Score)
-        Musical_Interest_Score_v = np.vectorize(Functions.Musical_Interest_Score)
-        Total_Score_v            = np.vectorize(Functions.Total_Score)
+        Education_Score_v        = np.vectorize(Education_Score)
+        Economic_Score_v         = np.vectorize(Economic_Score)
+        Health_Score_v           = np.vectorize(Health_Score)
+        Musical_Interest_Score_v = np.vectorize(Musical_Interest_Score)
+        Total_Score_v            = np.vectorize(Total_Score)
 
         data_feature['Score Education'] = Education_Score_v(data_feature['Estudia actualmente'],
                                                             data_feature['Nivel_academico'],
@@ -146,14 +134,14 @@ class Sinfonia():
                                                             data_feature['Hobbies'])
 
 
-        data_feature['Score Economic']  = Economic_Score_v( data_feature['Tipo de centro de estudios'],
+        data_feature['Score Economic'] = Economic_Score_v( data_feature['Tipo de centro de estudios'],
                                                             data_feature['Tiene beca de estudios?'],
                                                             data_feature['Beneficiario trabaja de manera remunerada?'],
                                                             data_feature['Tipo de SEGURO MEDICO (SIS, ESSALUD, EPS, otro, ninguno)'],
                                                             data_feature['Instrumento propio'])
 
 
-        data_feature['Score Health']    = Health_Score_v(data_feature['Tipo de SEGURO MEDICO (SIS, ESSALUD, EPS, otro, ninguno)'],
+        data_feature['Score Health'] = Health_Score_v(data_feature['Tipo de SEGURO MEDICO (SIS, ESSALUD, EPS, otro, ninguno)'],
                                                          data_feature['Alergias'],
                                                          data_feature['Restricciones alimentarias'],
                                                          data_feature['El beneficiario tiene alguna discapacidad? Especificar'],
@@ -207,11 +195,94 @@ class Sinfonia():
                       'Tipo de SEGURO MEDICO (SIS, ESSALUD, EPS, otro, ninguno)','Alergias','Restricciones alimentarias','El beneficiario tiene alguna discapacidad? Especificar',
                       'El beneficiario tiene algun trastorno de la personalidad? Especificar','Ha tenido anemia?','Fecha de ingreso del beneficiario a SPP',
                       'Nucleo al que ingreso por primera vez','Fecha de ingreso al beneficiario al Elenco Central','Instrumento propio', 'Cantidad de instrumentos prestados',
-                      'Fecha de retiro del beneficiario','Hobbies','Año Ingreso','Mes Ingreso','Mes Ingreso Num','Año Retiro','Mes Retiro','Mes Retiro Num',
-                      'Transicion_nucleo_nucleoinicial', 'Distancia_domicilio_colegio', 'Proximidad_domicilio_colegio', 'Transcion_domicilio_colegio', 'Distrito del centro de estudios']
+                      'Hobbies','Año Ingreso','Mes Ingreso','Mes Ingreso Num','Año Retiro','Mes Retiro','Mes Retiro Num','Transicion_nucleo_nucleoinicial', 
+                      'Distancia_domicilio_colegio', 'Proximidad_domicilio_colegio', 'Transcion_domicilio_colegio', 'Distrito del centro de estudios']
         
         self.data_final = data_encoding.drop(columns = drop_list2).copy()
 
         return self.data_final
         
+    def PerfilEstudiante(self, filename):
 
+        km = pickle.load(open(filename, "rb"))
+
+        ## CORREGIR LA LINEA 210 PORQUE ELIMINAS MUCHOS VALORES DEBIDO A QUE LA COLUMNA Distancia_domicilio_colegio presenta valores nan
+
+        data_encoding = self.data_feature_.reset_index(drop = True).copy()
+
+        data_cl = data_encoding.assign(eje_estudiante1  = np.where(data_encoding['Cantidad de hermanos'] == 0, 4,
+                                                          np.where(data_encoding['Cantidad de hermanos'] <= 2, 2.5,
+                                                          np.where(data_encoding['Cantidad de hermanos'] <= 3, 1.5,
+                                                          np.where(data_encoding['Cantidad de hermanos'] <= 4, 1,
+                                                          np.where(data_encoding['Cantidad de hermanos'] <= 5, 0.5, 0))))),
+                                        eje_estudiante2 = np.where(data_encoding['Edad'] <= 8,  1.5,
+                                                          np.where(data_encoding['Edad'] <= 9,  2,
+                                                          np.where(data_encoding['Edad'] <= 11, 3,
+                                                          np.where(data_encoding['Edad'] <= 14, 2.5,
+                                                          np.where(data_encoding['Edad'] <= 17, 1.5,
+                                                          np.where(data_encoding['Edad'] <= 20, 1, 0.5)))))),
+                                        eje_estudiante3 = np.where(data_encoding['Sexo'] == 'F', 1.5, 1),
+                                        eje_estudiante4 = np.where(data_encoding['Tipo de centro de estudios'] == 'PUBLICO', 1,
+                                                          np.where(data_encoding['Tipo de centro de estudios'] == 'PRIVADO', 2,
+                                                          np.where(data_encoding['Tipo de centro de estudios'] == 'PARROQUIAL', 0.5, 0))),
+                                        eje_estudiante5 = np.where(data_encoding['Hobbies'] == 'ARTE', 2,
+                                                          np.where(data_encoding['Hobbies'] == 'CONOCIMIENTO', 1.5,
+                                                          np.where(data_encoding['Hobbies'] == 'DEPORTE', 1, 0.5))),
+                                        eje_estudiante6 = np.where(data_encoding['Estudia actualmente'] == 'SI', 2, 1),
+                                        eje_programa1   = np.where(data_encoding['Dias_en_SPP'] <= 500, 3,
+                                                          np.where(data_encoding['Dias_en_SPP'] <= 1000, 1.5,
+                                                          np.where(data_encoding['Dias_en_SPP'] <= 2000, 1, 0.5))),
+                                        eje_programa2   = np.where(data_encoding['Programa musical'] == 'CORO', 3,
+                                                          np.where(data_encoding['Programa musical'] == 'ORQUESTA', 1.5,
+                                                          np.where(data_encoding['Programa musical'] == 'KINDER', 1, 0.5))),
+                                        eje_programa3   = np.where(data_encoding['Grupo'] == 'FORMACION INFANTIL', 3,
+                                                          np.where(data_encoding['Grupo'] == 'FORMACION JUVENIL', 1,
+                                                          np.where(data_encoding['Grupo'] == 'KINDER', 1.1, 0.5))),
+                                        eje_programa4   = np.where(data_encoding['Transcion_domicilio_colegio'] == 1, 0.5, 1.5),
+                                        eje_programa5   = np.where(data_encoding['Proximidad_domicilio_colegio'] == 1, 1.5, 0.5),
+                                        eje_programa6   = np.where(data_encoding['Tiene beca de estudios?'] == 'NO', 1, 2),
+                                        ).filter(regex = 'eje*').copy()
+
+        data_cl  = data_cl.assign(eje_estudiante = data_cl.filter(regex = 'eje_estudiante*').sum(axis=1),
+                                eje_programa   = data_cl.filter(regex = 'eje_programa*').sum(axis=1))\
+                        .filter(['eje_estudiante', 'eje_programa'])
+
+        y_km = km.predict(data_cl)
+
+        data_encoding['cluster'] = y_km
+
+        data_encoding = data_encoding.assign(cluster =  np.where(data_encoding['cluster'] == 0, 'Perfil 1',
+                                                        np.where(data_encoding['cluster'] == 1, 'Perfil 1', 
+                                                        np.where(data_encoding['cluster'] == 6, 'Perfil 1',
+                                                        np.where(data_encoding['cluster'] == 2, 'Perfil 2',
+                                                        np.where(data_encoding['cluster'] == 5, 'Perfil 2',
+                                                        np.where(data_encoding['cluster'] == 3, 'Perfil 3',
+                                                        np.where(data_encoding['cluster'] == 4, 'Perfil 4', 'None'))))))))
+
+        
+        dummy_columns = ['Estado del beneficiarios', 'Programa musical', 'Grupo', 'Sexo',
+                         'Tipo de centro de estudios', 'Hobbies']
+
+        data_encoding = pd.get_dummies(data_encoding, prefix_sep='.', columns=dummy_columns)
+
+        data_encoding.rename(
+            columns={"Sexo.M": "Masculino", "Sexo.F": "Femenino", "Hobbies.ARTE": "Arte", "Hobbies.CONOCIMIENTO": "Conocimiento", "Hobbies.DEPORTE": "Deporte",
+                    "Hobbies.OTROS": "Otros", "Tipo de centro de estudios.PUBLICO": "Colegio_publico", "Tipo de centro de estudios.PRIVADO": "Privado"},
+            inplace=True,
+        )
+
+        columnas = ['Masculino', 'Cantidad de hermanos', 'Transcion_domicilio_colegio', 
+                    'Arte', 'Conocimiento', 'Deporte', 'Colegio_publico']
+            
+        dbase_norm = data_encoding[columnas].apply(lambda x: x/max(x))
+
+        dbase_norm.columns = ['promedio Masculino', 'promedio Cantidad de hermanos', 'promedio Transcion_domicilio_colegio', 
+                              'promedio Arte', 'promedio Conocimiento', 'promedio Deporte', ' promedio Colegio publico']
+
+        data_encoding = pd.concat([data_encoding,dbase_norm],axis=1)
+
+        data_encoding['Estado_del_beneficiario'] = data_encoding['Estado del beneficiarios.ACTIVO'].values
+
+        self.data_perfil_estudiante = data_encoding 
+
+        return self.data_perfil_estudiante

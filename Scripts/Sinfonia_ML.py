@@ -14,14 +14,16 @@ class ML_LogisticRegression:
 
     def Prediction(self):
 
-        data_activo = self.data_final[self.data_final['Estado del beneficiarios'] == 1]
-        data_inactivo = self.data_final[self.data_final['Estado del beneficiarios'] == 0]
-        
-        columnas = ['Programa musical', 'Grupo', 'Nacionalidad',
+        columns = ['Programa musical', 'Grupo', 'Nacionalidad',
                     'Sexo', 'Cantidad de hermanos', 'Edad', 'Dias_en_SPP',
                     'Nivel_academico', 'Grado_estudios', 'Score Education',
                     'Score Economic', 'Score Health', 'Score Musical Interest',
-                    'Score Total']
+                    'Score Total', 'Estado del beneficiarios']
+        
+        self.data_final = self.data_final[columns].copy()
+
+        data_activo = self.data_final[self.data_final['Estado del beneficiarios'] == 1]
+        data_inactivo = self.data_final[self.data_final['Estado del beneficiarios'] == 0]
        
         X = data_activo.drop(['Estado del beneficiarios'], axis = 1)
         y = data_activo['Estado del beneficiarios'].values
@@ -33,11 +35,11 @@ class ML_LogisticRegression:
         X_train = data_train.drop(['Estado del beneficiarios'], axis = 1).copy()
         y_train = data_train['Estado del beneficiarios'].values
 
-        columns_shap = list(X.filter(columnas).columns)
+        columns_shap = list(X.columns)
 
         scaler = StandardScaler()
-        X_train_std = scaler.fit(X_train.filter(columnas)).transform(X_train.filter(columnas))
-        X_test_std = scaler.transform(X_test.filter(columnas))
+        X_train_std = scaler.fit(X_train).transform(X_train)
+        X_test_std = scaler.transform(X_test)
 
         log_cl = linear_model.LogisticRegression().fit(X_train_std, y_train)
         
