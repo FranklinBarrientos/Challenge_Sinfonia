@@ -171,7 +171,13 @@ if selected == 'Main Page':
 if selected == 'Perfil de Estudiante':
     st.title(f"Perfil de Estudiante")
 
-    cluster = ['Todos', 'Perfil 1', 'Perfil 2', 'Perfil 3', 'Perfil 4']
+    df_group1 = data_perfil_estudiante[['Estado_del_beneficiario','cluster']].groupby(by='cluster').sum()
+    df_group2 = data_perfil_estudiante[['Estado_del_beneficiario','cluster']].groupby(by='cluster').count()
+    df_grouptotal = pd.merge(df_group1,df_group2,how='left',left_index=True,right_index=True).reset_index()
+    df_grouptotal['Porcentage'] = df_grouptotal['Estado_del_beneficiario_x']/df_grouptotal['Estado_del_beneficiario_y'] * 100
+    cluster = list(df_grouptotal.sort_values('Porcentage',ascending=False)['cluster'])
+    cluster.insert(0,'Todos')
+
     cl = st.selectbox('Seleccione el Perfil del estudiante a analizar', cluster, help = 'Filtrar el reporte para mostrar unicamente un perfil') 
     definition = {'Todos': 'Los estudiantes principalmente lo conforman mujeres donde en su mayoria pertenecen a escuelas privadas ubicadas en distritos distintos al de sus viviendas', 
                   'Perfil 1': 'Estudiantes pertenecientes a escuelas privadas con pocos hermanos orientados a actividades artisticas y relacionadas al conocimiento', 
@@ -188,10 +194,15 @@ if selected == 'Perfil de Estudiante':
         else:
             db = data_perfil_estudiante.query('cluster == "{}"'.format(cl))
 
-        kpi1.metric(label="Cantidad de estudiantes", value = len(db.index))
-        kpi2.metric(label="Edad Promedio",      value = round(int(db['Edad'].mean()), 2))
-        kpi3.metric(label="Grado Academico Promedio",    value = round(db['Grado_estudios'].median(), 2))
-        kpi4.metric(label="Porcentage de estudiantes activos", value = round(db['Estado_del_beneficiario'].sum()/len(db)*100, 2))
+        cantidad_estudiantes = len(db.index)
+        edad_promedio = round(int(db['Edad'].mean()), 2)
+        grado_academico_promedio = round(db['Grado_estudios'].median(), 2)
+        porcentage_estudiantes_activos = round(db['Estado_del_beneficiario'].sum()/len(db)*100, 2)
+
+        kpi1.metric(label="Cantidad de estudiantes", value = f'{cantidad_estudiantes}')
+        kpi2.metric(label="Edad Promedio",      value = f'{edad_promedio}')
+        kpi3.metric(label="Grado Academico Promedio",    value = f'{grado_academico_promedio}')
+        kpi4.metric(label="Porcentage de estudiantes activos", value = f'{porcentage_estudiantes_activos} %')
 
         c1, c2 = st.columns(2)
 
