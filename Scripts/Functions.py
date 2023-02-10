@@ -149,14 +149,19 @@ def Total_Score(education,economic,health,musical_interest):
 
 def plot_Fig1(df):
 
-    df1 = df[df['Estado del beneficiarios'] == 'ACTIVO'][['Estado del beneficiarios','Sexo']].copy()
+    mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & (df['Estado del beneficiarios'] == 'ACTIVO')
+
+    df1 = df[mask].copy()[['Estado del beneficiarios','Sexo']]
+
     df_plot1 = df1.groupby(by='Sexo').count().reset_index()
     df_plot1.columns = ['Género', 'Cantidad de beneficiarios']
 
     return df_plot1
 
 def plot_Fig2(df):
-    df2 = df[df['Estado del beneficiarios'] == 'ACTIVO'][['Estado del beneficiarios','Edad']].copy()
+    mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & (df['Estado del beneficiarios'] == 'ACTIVO')
+
+    df2 = df[mask].copy()[['Estado del beneficiarios','Edad']]
     df2['Tag'] = np.where(df2['Edad'] < 9, 'Menor a 9 años', np.where(df2['Edad'] > 15,'Mayor a 15 años','Entre 9 y 15 años'))
 
     df_plot2 = df2[['Tag','Estado del beneficiarios']].groupby(by='Tag').count().reset_index()
@@ -167,7 +172,9 @@ def plot_Fig2(df):
 def plot_Fig3(df):
 
     mask_df3 = df['Fecha de retiro del beneficiario'] != datetime.datetime.today().strftime('%Y-%m-%d')
-    df3 = df[mask_df3][['Año Ingreso','Mes Ingreso','Mes Ingreso Num','Año Retiro','Mes Retiro','Mes Retiro Num','Estado del beneficiarios']].copy()
+    mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & mask_df3
+
+    df3 = df[mask].copy()[['Año Ingreso','Mes Ingreso','Mes Ingreso Num','Año Retiro','Mes Retiro','Mes Retiro Num','Estado del beneficiarios']]
 
     group1 = df3[['Mes Ingreso','Mes Ingreso Num','Estado del beneficiarios']].groupby(by=['Mes Ingreso', 'Mes Ingreso Num']).count().reset_index()
     group1['Tag'] = np.full(len(group1),'Ingresos')
@@ -194,7 +201,11 @@ def plot_Fig3(df):
 
 def plot_Fig4(df):
 
-    df_plot4 = df['Tipo de centro de estudios'].value_counts().to_frame(name = 'total').reset_index()
+    mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha)
+
+    df4 = df[mask].copy()
+
+    df_plot4 = df4['Tipo de centro de estudios'].value_counts().to_frame(name = 'total').reset_index()
     
     return df_plot4
 

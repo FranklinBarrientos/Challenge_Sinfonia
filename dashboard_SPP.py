@@ -85,11 +85,19 @@ if selected == 'Main Page':
     with col2:
         st.markdown('<p class="big-font">Sinfonía Por El Perú</p>', unsafe_allow_html=True)
 
+    st.subheader("Elige el rango de fechas a evaluar:")
+    
+    fecha_range = st.slider("",min_value=data_encoding['Fecha de ingreso del beneficiario a SPP'].min().date(),
+                            max_value=datetime.date.today(),
+                            step=datetime.timedelta(days=1),
+                            value=datetime.date.today())
+
+    threshold_fecha = fecha_range.strftime('%Y-%m-%d')
 
     row1_1, row1_2 = st.columns([1, 2])
     with row1_1:
 
-        df_plot1 = plot_Fig1(data_encoding)
+        df_plot1 = plot_Fig1(data_encoding, threshold_fecha)
 
         fig1 = go.Figure(data=[go.Bar( 
                             x=df_plot1['Género'], 
@@ -104,7 +112,7 @@ if selected == 'Main Page':
 
     with row1_2:
 
-        (df_plot3_1, df_plot3_2) = plot_Fig3(data_encoding)
+        (df_plot3_1, df_plot3_2) = plot_Fig3(data_encoding, threshold_fecha)
 
         fig3 = go.Figure(data=[
             go.Bar(name = 'Ingresos', 
@@ -138,7 +146,7 @@ if selected == 'Main Page':
     row2_1, row2_2 = st.columns(2)
     with row2_1:
 
-        df_plot2 = plot_Fig2(data_encoding)
+        df_plot2 = plot_Fig2(data_encoding, threshold_fecha)
 
         fig2 = go.Figure(data=[go.Pie(
                                 labels=list(df_plot2['Tag']), 
@@ -152,7 +160,7 @@ if selected == 'Main Page':
 
     with row2_2:
 
-        df_plot4 = plot_Fig4(data_encoding)
+        df_plot4 = plot_Fig4(data_encoding, threshold_fecha)
 
         fig4 = px.pie(df_plot4, values='total', names='index')
         
