@@ -147,7 +147,7 @@ def Total_Score(education,economic,health,musical_interest):
 
     return num/den
 
-def plot_Fig1(df):
+def plot_Fig1(df, threshold_fecha):
 
     mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & (df['Estado del beneficiarios'] == 'ACTIVO')
 
@@ -158,7 +158,7 @@ def plot_Fig1(df):
 
     return df_plot1
 
-def plot_Fig2(df):
+def plot_Fig2(df, threshold_fecha):
     mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & (df['Estado del beneficiarios'] == 'ACTIVO')
 
     df2 = df[mask].copy()[['Estado del beneficiarios','Edad']]
@@ -169,7 +169,7 @@ def plot_Fig2(df):
 
     return df_plot2
 
-def plot_Fig3(df):
+def plot_Fig3(df, threshold_fecha):
 
     mask_df3 = df['Fecha de retiro del beneficiario'] != datetime.datetime.today().strftime('%Y-%m-%d')
     mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha) & mask_df3
@@ -199,7 +199,7 @@ def plot_Fig3(df):
 
     return (df_plot3_1, df_plot3_2)
 
-def plot_Fig4(df):
+def plot_Fig4(df, threshold_fecha):
 
     mask = (df['Fecha de ingreso del beneficiario a SPP'] <= threshold_fecha)
 
