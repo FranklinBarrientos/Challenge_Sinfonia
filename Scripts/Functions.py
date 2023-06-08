@@ -319,5 +319,28 @@ def plot_Fig11(X_test,df_final, df_perfil):
 
     return dataFinal.filter(columnasDescriptivas)
 
+def plot_Fig12(df):
+
+    mask = (df['Estado del beneficiarios'] == 'ACTIVO')
+
+    df1 = df[mask].copy()[['Estado del beneficiarios','Fecha_ingreso']]
+
+    df_plot1 = df1.groupby(by='Fecha_ingreso').count().reset_index()
+    df_plot1.columns = ['Fecha_ingreso', 'Cantidad de beneficiarios']
+
+    return df_plot1
+
+def plot_Fig13(df):
+    
+    df2 = df.copy()[['Estado del beneficiarios','Fecha de ingreso al beneficiario al Elenco Central']]
+    df2['Tag'] = np.where(df2['Fecha de ingreso al beneficiario al Elenco Central'].notnull(), 
+                          'Elenco Central', 
+                          'No Elenco Central')
+
+    df_plot2 = df2[['Tag','Estado del beneficiarios']].groupby(by='Tag').count().reset_index()
+    df_plot2.columns = ['Tag','Cantidad de beneficiarios']
+
+    return df_plot2
+
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')

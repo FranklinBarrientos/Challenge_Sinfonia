@@ -63,8 +63,8 @@ st.set_page_config(page_title            = 'Sinfonia Por El Peru',
 with st.sidebar:
     selected = option_menu(
             menu_title = "Dashboard",
-            options    = ["Main Page", "Perfil de Estudiante", "Modelo de Fuga de Estudiantes"],
-            icons      = ['house', 'people', 'book'],
+            options    = ["Main Page", "Descriptiva", "Perfil de Estudiante", "Modelo de Fuga de Estudiantes"],
+            icons      = ['house', 'statsbi bi-bar-chart', 'people', 'book'],
             menu_icon  = 'cast',
             default_index = 0,
             styles={
@@ -74,9 +74,8 @@ with st.sidebar:
                 "nav-link-selected": {"background-color": "#1EA4D9"},
             }
         )
-
+    
 if selected == 'Main Page':
-
     st.markdown("""<style>.big-font {font-size:55px !important;}</style>""", unsafe_allow_html=True)
 
     col1, col2 = st.columns([2, 1])
@@ -84,6 +83,49 @@ if selected == 'Main Page':
         st.image("Logo/logo_spp.png", width=400)
     with col2:
         st.markdown('<p class="big-font">Sinfonía Por El Perú</p>', unsafe_allow_html=True)
+    
+    data['MES'] = pd.to_datetime(data['Periodo/MES'], format='%Y%m').dt.strftime('%Y-%m')
+    data['Fecha_ingreso'] = pd.to_datetime(data['Fecha de ingreso'], format='%d/%m/%Y').dt.strftime('%Y-%m')
+    #KPI
+    KPI1 = data.shape[0]
+    KPI2 = data.query('MES == Fecha_ingreso').shape[0]
+    KPI3 = data[data['Fecha de ingreso al beneficiario al Elenco Central'].notnull()].shape[0]
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric(label="Número Total de beneficiarios", value="%.2f" % KPI1)
+    col2.metric(label="Número de beneficiados por Mes", value="%.2f" % KPI2)
+    col3.metric(label="Número de beneficiados promovidos al EC", value="%.2f" % KPI3)
+    
+    row2_1, row2_2 = st.columns(2)
+    with row2_1:
+
+        df_plot2 = plot_Fig12(data)
+        
+        fig2 = go.Figure(data=[go.Bar( 
+                            x=df_plot2['Fecha_ingreso'], 
+                            y=df_plot2['Cantidad de beneficiarios'],
+                            text = df_plot2['Cantidad de beneficiarios'],
+                            textposition='auto')
+        ])
+
+        st.subheader("Cantidad de Ingresos de beneficiarios por Mes")
+        st.plotly_chart(fig2, theme="streamlit", use_container_width=True)
+
+    with row2_2:
+        
+        df_plot13 = plot_Fig13(data)
+
+        fig2 = go.Figure(data=[go.Pie(
+                                      labels=list(df_plot13['Tag']), 
+                                      values=list(df_plot13['Cantidad de beneficiarios']), 
+                                      hole=.5)
+                              ])
+        fig2.update_traces(marker=dict(colors=['#1EA4D9', '#8C1F85']))
+        
+        st.subheader("Porcentaje de beneficiarios en Elenco Central")
+        st.plotly_chart(fig2, theme="streamlit", use_container_width=True)   
+
+if selected == 'Descriptiva':
 
     st.subheader("Elige el rango de fechas a evaluar:")
     
